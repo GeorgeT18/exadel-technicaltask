@@ -1,0 +1,10 @@
+package com.exadel.technicaltask.parser;
+
+enum ParserSeekerStage {
+    STARTING,
+    LOOKING_FOR_TEXT,
+    LOOKING_FOR_TEXT_AFTER_DELIMITER,
+    LOOKING_FOR_TEXT_AFTER_NODE_GROUP_START,
+    LOOKING_FOR_TEXT_OR_END_AFTER_NODE_GROUP_END,
+    REACHED_END
+}
