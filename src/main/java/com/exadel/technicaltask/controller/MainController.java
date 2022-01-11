@@ -1,8 +1,6 @@
 package com.exadel.technicaltask.controller;
 
-import com.exadel.technicaltask.exception.parser.InvalidParseInputException;
 import com.exadel.technicaltask.exception.parser.ParseException;
-import com.exadel.technicaltask.exception.parser.UnexpectedTokenParseException;
 import com.exadel.technicaltask.model.ParseResult;
 import com.exadel.technicaltask.parser.Parser;
 import com.exadel.technicaltask.util.ParserUtil;
@@ -40,7 +38,7 @@ public class MainController {
     }
 
     @PostMapping
-    public String submit(HttpServletRequest request, Model model, HttpSession session) throws InvalidParseInputException, UnexpectedTokenParseException {
+    public String submit(HttpServletRequest request, Model model, HttpSession session) {
         String text = request.getParameter("textToBeParsed");
 
         Parser parser = new Parser(text);

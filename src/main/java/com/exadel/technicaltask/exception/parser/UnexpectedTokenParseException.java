@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.util.List;
 
 
-@Getter(AccessLevel.PRIVATE)
+@Getter(AccessLevel.PUBLIC)
 public class UnexpectedTokenParseException extends ParseException {
     private final int pos;
     private final String receivedToken;

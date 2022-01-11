@@ -110,6 +110,10 @@ public class Parser {
             }
 
             if (this.prevSeekerStage.equals(this.seekerStage)) {
+                if (this.prevSeekerStage.equals(ParserSeekerStage.LOOKING_FOR_TEXT_OR_END_AFTER_NODE_GROUP_END)) {
+                    break;
+                }
+
                 continue;
             }
 
