@@ -10,7 +10,7 @@ import java.util.List;
 public abstract class ParserUtil {
     private ParserUtil() {}
 
-    private static void flatten(List<ParseResult> parseResultList, ParserFlattener parserFlattener, List<Object> appendToFlatList, int currentDepth) {
+    private static <T> void flatten(List<ParseResult> parseResultList, ParserFlattener<T> parserFlattener, List<T> appendToFlatList, int currentDepth) {
         for (ParseResult parseResult : parseResultList) {
             appendToFlatList.add(parserFlattener.op(parseResult, currentDepth));
 
@@ -20,8 +20,8 @@ public abstract class ParserUtil {
         }
     }
 
-    public static List<Object> flatten(List<ParseResult> parseResultList, ParserFlattener parserFlattener) {
-        List<Object> flatList = new ArrayList<>();
+    public static <T> List<T> flatten(List<ParseResult> parseResultList, ParserFlattener<T> parserFlattener) {
+        List<T> flatList = new ArrayList<>();
 
         ParserUtil.flatten(parseResultList, parserFlattener, flatList, 0);
 

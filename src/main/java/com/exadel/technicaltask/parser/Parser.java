@@ -27,11 +27,11 @@ public class Parser {
     private ParserSeekerStage getSeekerStageByToken(String token) {
         switch (token) {
             case ParseTokenGrammar.DELIMITER:
-                return ParserSeekerStage.LOOKING_FOR_TEXT_AFTER_DELIMITER;
+                return ParserSeekerStage.REACHED_DELIMITER;
             case ParseTokenGrammar.NODE_GROUP_START:
-                return ParserSeekerStage.LOOKING_FOR_TEXT_AFTER_NODE_GROUP_START;
+                return ParserSeekerStage.REACHED_NODE_GROUP_START;
             case ParseTokenGrammar.NODE_GROUP_END:
-                return ParserSeekerStage.LOOKING_FOR_TEXT_OR_END_AFTER_NODE_GROUP_END;
+                return ParserSeekerStage.REACHED_NODE_GROUP_END;
             // if we reached default case, then the token will be treated as part of the text value
             default:
                 return ParserSeekerStage.LOOKING_FOR_TEXT;
@@ -42,15 +42,15 @@ public class Parser {
         ParserSeekerStage currentStage = this.seekerStage;
         ParserSeekerStage prevStage = this.prevSeekerStage;
 
-        if (Objects.equals(prevStage, ParserSeekerStage.STARTING) && !Objects.equals(currentStage, ParserSeekerStage.LOOKING_FOR_TEXT_AFTER_NODE_GROUP_START)) {
+        if (Objects.equals(prevStage, ParserSeekerStage.STARTING) && !Objects.equals(currentStage, ParserSeekerStage.REACHED_NODE_GROUP_START)) {
             throw new UnexpectedTokenParseException(this.seekPosition, receivedToken, List.of(ParseTokenGrammar.NODE_GROUP_START));
         }
 
-        if (Objects.equals(prevStage, ParserSeekerStage.LOOKING_FOR_TEXT_AFTER_NODE_GROUP_START) && !Objects.equals(currentStage, ParserSeekerStage.LOOKING_FOR_TEXT)) {
+        if (Objects.equals(prevStage, ParserSeekerStage.REACHED_NODE_GROUP_START) && !Objects.equals(currentStage, ParserSeekerStage.LOOKING_FOR_TEXT)) {
             throw new UnexpectedTokenParseException(this.seekPosition, receivedToken, List.of("text"));
         }
 
-        if (Objects.equals(prevStage, ParserSeekerStage.LOOKING_FOR_TEXT_AFTER_DELIMITER) && !Objects.equals(currentStage, ParserSeekerStage.LOOKING_FOR_TEXT)) {
+        if (Objects.equals(prevStage, ParserSeekerStage.REACHED_DELIMITER) && !Objects.equals(currentStage, ParserSeekerStage.LOOKING_FOR_TEXT)) {
             throw new UnexpectedTokenParseException(this.seekPosition, receivedToken, List.of("text", ParseTokenGrammar.NODE_GROUP_END));
         }
 
@@ -58,8 +58,12 @@ public class Parser {
             throw new UnexpectedTokenParseException(this.seekPosition, receivedToken, List.of(ParseTokenGrammar.NODE_GROUP_END));
         }
 
-        if (this.nodeGroupDepth < 0 || (this.nodeGroupDepth == 0 && !List.of(ParserSeekerStage.REACHED_END, ParserSeekerStage.LOOKING_FOR_TEXT_OR_END_AFTER_NODE_GROUP_END).contains(currentStage))) {
+        if (this.nodeGroupDepth < 0 || (this.nodeGroupDepth == 0 && !List.of(ParserSeekerStage.REACHED_END, ParserSeekerStage.REACHED_NODE_GROUP_END).contains(currentStage))) {
             throw new UnexpectedTokenParseException(this.seekPosition, receivedToken, List.of("end"));
+        }
+
+        if (Objects.equals(prevStage, ParserSeekerStage.REACHED_NODE_GROUP_END) && !List.of(ParserSeekerStage.REACHED_DELIMITER, ParserSeekerStage.REACHED_NODE_GROUP_END, ParserSeekerStage.REACHED_END).contains(currentStage)) {
+            throw new UnexpectedTokenParseException(this.seekPosition, receivedToken, List.of(ParseTokenGrammar.DELIMITER, ParseTokenGrammar.NODE_GROUP_END));
         }
     }
 
@@ -78,11 +82,11 @@ public class Parser {
 
         this.seekerStage = this.getSeekerStageByToken(token);
 
-        if (this.seekerStage.equals(ParserSeekerStage.LOOKING_FOR_TEXT_AFTER_NODE_GROUP_START)) {
+        if (this.seekerStage.equals(ParserSeekerStage.REACHED_NODE_GROUP_START)) {
             this.nodeGroupDepth++;
         }
 
-        if (this.seekerStage.equals(ParserSeekerStage.LOOKING_FOR_TEXT_OR_END_AFTER_NODE_GROUP_END)) {
+        if (this.seekerStage.equals(ParserSeekerStage.REACHED_NODE_GROUP_END)) {
             this.nodeGroupDepth--;
         }
 
@@ -110,7 +114,7 @@ public class Parser {
             }
 
             if (this.prevSeekerStage.equals(this.seekerStage)) {
-                if (this.prevSeekerStage.equals(ParserSeekerStage.LOOKING_FOR_TEXT_OR_END_AFTER_NODE_GROUP_END)) {
+                if (this.prevSeekerStage.equals(ParserSeekerStage.REACHED_NODE_GROUP_END) && this.nodeGroupDepth != 0) {
                     break;
                 }
 
@@ -126,7 +130,7 @@ public class Parser {
 
                 children.add(childParseResult);
 
-                if (this.seekerStage.equals(ParserSeekerStage.LOOKING_FOR_TEXT_OR_END_AFTER_NODE_GROUP_END)) {
+                if (this.seekerStage.equals(ParserSeekerStage.REACHED_NODE_GROUP_END)) {
                     if (currentDepth == 0) {
                         continue;
                     } else {
@@ -134,12 +138,12 @@ public class Parser {
                     }
                 }
 
-                if (this.seekerStage.equals(ParserSeekerStage.LOOKING_FOR_TEXT_AFTER_NODE_GROUP_START)) {
+                if (this.seekerStage.equals(ParserSeekerStage.REACHED_NODE_GROUP_START)) {
                     this.parseDown(childParseResult, currentDepth + 1);
                 }
             }
 
-            if (Arrays.asList(ParserSeekerStage.LOOKING_FOR_TEXT_AFTER_DELIMITER, ParserSeekerStage.LOOKING_FOR_TEXT_AFTER_NODE_GROUP_START).contains(this.seekerStage)) {
+            if (Arrays.asList(ParserSeekerStage.REACHED_DELIMITER, ParserSeekerStage.REACHED_NODE_GROUP_START).contains(this.seekerStage)) {
                 textStartPosition = this.seekPosition;
             }
         }

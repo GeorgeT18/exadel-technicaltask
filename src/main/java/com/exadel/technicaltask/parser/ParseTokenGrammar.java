@@ -1,6 +1,6 @@
 package com.exadel.technicaltask.parser;
 
-abstract class ParseTokenGrammar {
+public abstract class ParseTokenGrammar {
     private ParseTokenGrammar() {}
 
     public static final String DELIMITER = ",";
